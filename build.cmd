@@ -292,7 +292,8 @@ if exist "%ProgramFiles(x86)%\Windows Kits\10\Redist\D3D\%MESA_ARCH%\dxil.dll" (
 
 rem *** zink ***
 
-git.exe apply --directory=mesa-%MESA_VERSION% patches/zink-static-build.patch || exit /b 1
+git.exe apply --directory=mesa-%MESA_VERSION% patches/zink-static-build.patch                    || exit /b 1
+git.exe apply --directory=mesa-%MESA_VERSION% patches/zink-drop-nullDescriptor-requirement.patch || exit /b 1
 
 rd /s /q mesa-build-%MESA_ARCH% 1>nul 2>nul
 meson.exe setup ^
