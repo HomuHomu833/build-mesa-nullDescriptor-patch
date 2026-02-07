@@ -1,8 +1,8 @@
 @echo off
 setlocal enabledelayedexpansion
 
-set MESA_VERSION=25.3.4
-set MESA_SHA256=3a0fc6ec070b45ae25dc2ccb5e52fae1d89141f7c39c4a91fe4eaa80dfff9deb
+set MESA_VERSION=25.3.5
+set MESA_SHA256=be472413475082df945e0f9be34f5af008baa03eb357e067ce5a611a2d44c44b
 
 set LLVM_VERSION=21.1.8
 set LLVM_SHA256=4633a23617fa31a3ea51242586ea7fb1da7140e426bd62fc164261fe036aa142
@@ -233,6 +233,7 @@ call :get "https://archive.mesa3d.org/mesa-%MESA_VERSION%.tar.xz" "mesa-%MESA_VE
 git.exe apply --directory=mesa-%MESA_VERSION% patches/mesa-require-dxheaders.patch    || exit /b 1
 git.exe apply --directory=mesa-%MESA_VERSION% patches/gallium-use-tex-cache.patch     || exit /b 1
 git.exe apply --directory=mesa-%MESA_VERSION% patches/gallium-static-build.patch      || exit /b 1
+git.exe apply --directory=mesa-%MESA_VERSION% patches/dxil-hash.patch                 || exit /b 1
 
 mkdir mesa-%MESA_VERSION%\subprojects\llvm                                   1>nul || exit /b 1
 copy meson\meson.llvm.build mesa-%MESA_VERSION%\subprojects\llvm\meson.build 1>nul || exit /b 1
@@ -284,11 +285,6 @@ meson.exe setup ^
   %MESON_CROSS% || exit /b 1
 ninja.exe -C mesa-build-%MESA_ARCH% install || exit /b 1
 python.exe mesa-%MESA_VERSION%\src\vulkan\util\vk_icd_gen.py --api-version 1.1 --xml mesa-%MESA_VERSION%\src\vulkan\registry\vk.xml --lib-path vulkan_dzn.dll --out mesa-d3d12-%MESA_ARCH%\bin\dzn_icd.%TARGET_ARCH_NAME%.json || exit /b 1
-if exist "%ProgramFiles(x86)%\Windows Kits\10\Redist\D3D\%MESA_ARCH%\dxil.dll" (
-  copy /y "%ProgramFiles(x86)%\Windows Kits\10\Redist\D3D\%MESA_ARCH%\dxil.dll" mesa-d3d12-%MESA_ARCH%\bin\
-) else if exist "%WindowsSdkVerBinPath%%MESA_ARCH%\dxil.dll" (
-  copy /y "%WindowsSdkVerBinPath%%MESA_ARCH%\dxil.dll" mesa-d3d12-%MESA_ARCH%\bin\
-)
 
 rem *** zink ***
 
@@ -338,7 +334,6 @@ if "%GITHUB_WORKFLOW%" neq "" (
 
   mkdir archive-d3d12-%MESA_ARCH%
   pushd archive-d3d12-%MESA_ARCH%
-  copy /y ..\mesa-d3d12-%MESA_ARCH%\bin\dxil.dll         .           || exit /b 1
   copy /y ..\mesa-d3d12-%MESA_ARCH%\bin\opengl32.dll     .           || exit /b 1
   copy /y ..\mesa-d3d12-%MESA_ARCH%\bin\libEGL.dll       .           || exit /b 1
   copy /y ..\mesa-d3d12-%MESA_ARCH%\lib\libEGL.lib       .           || exit /b 1
@@ -363,7 +358,6 @@ if "%GITHUB_WORKFLOW%" neq "" (
 
   mkdir archive-dzn-%MESA_ARCH%
   pushd archive-dzn-%MESA_ARCH%
-  copy /y ..\mesa-d3d12-%MESA_ARCH%\bin\dxil.dll                        . || exit /b 1
   copy /y ..\mesa-d3d12-%MESA_ARCH%\bin\vulkan_dzn.dll                  . || exit /b 1
   copy /y ..\mesa-d3d12-%MESA_ARCH%\bin\dzn_icd.%TARGET_ARCH_NAME%.json . || exit /b 1
   %SZIP% a -mx=9 -mqs=on ..\mesa-dzn-%MESA_ARCH%-%MESA_VERSION%.7z        || exit /b 1
