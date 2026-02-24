@@ -1,12 +1,12 @@
 @echo off
 setlocal enabledelayedexpansion
 
-set MESA_VERSION=25.3.5
-set MESA_SHA256=be472413475082df945e0f9be34f5af008baa03eb357e067ce5a611a2d44c44b
+set MESA_VERSION=26.0.0
+set MESA_SHA256=2a44e98e64d5c36cec64633de2d0ec7eff64703ee25b35364ba8fcaa84f33f72
 
-set LLVM_VERSION=21.1.8
-set LLVM_SHA256=4633a23617fa31a3ea51242586ea7fb1da7140e426bd62fc164261fe036aa142
-set LLVM_RELEASE=https://discourse.llvm.org/t/llvm-21-1-8-released/89144
+set LLVM_VERSION=22.1.0-rc3
+set LLVM_SHA256=cfccf081ae6ee6ae7367b1915acccb8935c030d74b33b6e833bf5e2f03d96a30
+set LLVM_RELEASE=https://discourse.llvm.org/t/llvm-22-1-0-rc3-released/89769
 
 >nul find "'%LLVM_VERSION%'" meson\meson.llvm.build || (
   echo llvm version in meson.llvm.build does not match expected %LLVM_VERSION% value^^!
@@ -110,8 +110,10 @@ if not exist winflexbison (
 rem *** find Visual Studio ***
 
 set VSCMD_SKIP_SENDTELEMETRY=1
-for /f "tokens=*" %%i in ('"%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" -latest -requires Microsoft.VisualStudio.Workload.NativeDesktop -property installationPath') do set VS=%%i
 if "%VS%" equ "" (
+  for /f "tokens=*" %%i in ('"%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" -latest -requires Microsoft.VisualStudio.Workload.NativeDesktop -property installationPath') do set VS=%%i
+)
+if "!VS!" equ "" (
   echo ERROR: Visual Studio installation not found^^!
   exit /b 1
 )
@@ -213,6 +215,7 @@ cmake.exe ^
   -D LLVM_INCLUDE_BENCHMARKS=OFF ^
   -D LLVM_ENABLE_BINDINGS=OFF ^
   -D LLVM_OPTIMIZED_TABLEGEN=ON ^
+  -D LLVM_TOOL_LTO_BUILD=OFF ^
   -D LLVM_ENABLE_PLUGINS=OFF ^
   -D LLVM_ENABLE_IDE=OFF || exit /b 1
 ninja.exe -C llvm-project-%LLVM_VERSION%.build-%MESA_ARCH% llvm-headers llvm-libraries || exit /b 1
@@ -259,7 +262,7 @@ meson.exe setup ^
   -Dgles2=enabled ^
   %MESON_CROSS% || exit /b 1
 ninja.exe -C mesa-build-%MESA_ARCH% install || exit /b 1
-python.exe mesa-%MESA_VERSION%\src\vulkan\util\vk_icd_gen.py --api-version 1.4 --xml mesa-%MESA_VERSION%\src\vulkan\registry\vk.xml --lib-path vulkan_lvp.dll --out mesa-llvmpipe-%MESA_ARCH%\bin\lvp_icd.%TARGET_ARCH_NAME%.json || exit /b 1
+python.exe mesa-%MESA_VERSION%\src\vulkan\util\vk_icd_gen.py --api-version 1.4 --xml mesa-%MESA_VERSION%\src\vulkan\registry\vk.xml --icd-lib-path . --icd-filename vulkan_lvp.dll --out mesa-llvmpipe-%MESA_ARCH%\bin\lvp_icd.%TARGET_ARCH_NAME%.json || exit /b 1
 
 rem *** d3d12, dzn ***
 
@@ -284,7 +287,7 @@ meson.exe setup ^
   -Dgles2=enabled ^
   %MESON_CROSS% || exit /b 1
 ninja.exe -C mesa-build-%MESA_ARCH% install || exit /b 1
-python.exe mesa-%MESA_VERSION%\src\vulkan\util\vk_icd_gen.py --api-version 1.1 --xml mesa-%MESA_VERSION%\src\vulkan\registry\vk.xml --lib-path vulkan_dzn.dll --out mesa-d3d12-%MESA_ARCH%\bin\dzn_icd.%TARGET_ARCH_NAME%.json || exit /b 1
+python.exe mesa-%MESA_VERSION%\src\vulkan\util\vk_icd_gen.py --api-version 1.1 --xml mesa-%MESA_VERSION%\src\vulkan\registry\vk.xml --icd-lib-path . --icd-filename vulkan_dzn.dll --out mesa-d3d12-%MESA_ARCH%\bin\dzn_icd.%TARGET_ARCH_NAME%.json || exit /b 1
 
 rem *** zink ***
 
