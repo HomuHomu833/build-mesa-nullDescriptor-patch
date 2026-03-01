@@ -1,4 +1,4 @@
-From 4272ace1f5ea144b43614e68439591b5ad531b4f Mon Sep 17 00:00:00 2001
+From c7ef4d35ea93182ff5906bafe9d14c17a39dada2 Mon Sep 17 00:00:00 2001
 From: Icenowy Zheng <uwu@icenowy.me>
 Date: Mon, 1 Sep 2025 14:12:26 +0800
 Subject: [PATCH] zink: drop the requirement of nullDescriptor
@@ -25,7 +25,7 @@ Signed-off-by: Icenowy Zheng <uwu@icenowy.me>
  7 files changed, 167 insertions(+), 30 deletions(-)
 
 diff --git a/docs/drivers/zink.rst b/docs/drivers/zink.rst
-index b870b78b394c2..294f49f282fba 100644
+index b870b78b394c..294f49f282fb 100644
 --- a/docs/drivers/zink.rst
 +++ b/docs/drivers/zink.rst
 @@ -331,6 +331,8 @@ variable:
@@ -38,10 +38,10 @@ index b870b78b394c2..294f49f282fba 100644
  Vulkan Validation Layers
  ^^^^^^^^^^^^^^^^^^^^^^^^
 diff --git a/src/gallium/drivers/zink/zink_context.c b/src/gallium/drivers/zink/zink_context.c
-index 889699d80f2c4..5c478a2e4400c 100644
+index cea4a9fbeb42..912bc6dc01ca 100644
 --- a/src/gallium/drivers/zink/zink_context.c
 +++ b/src/gallium/drivers/zink/zink_context.c
-@@ -165,8 +165,12 @@ zink_context_destroy(struct pipe_context *pctx)
+@@ -167,8 +167,12 @@ zink_context_destroy(struct pipe_context *pctx)
     if (ctx->blitter)
        util_blitter_destroy(ctx->blitter);
  
@@ -54,7 +54,7 @@ index 889699d80f2c4..5c478a2e4400c 100644
     zink_descriptors_deinit_bindless(ctx);
  
     u_upload_destroy(pctx->stream_uploader);
-@@ -724,7 +728,9 @@ update_descriptor_state_ubo_lazy(struct zink_context *ctx, mesa_shader_stage sha
+@@ -726,7 +730,9 @@ update_descriptor_state_ubo_lazy(struct zink_context *ctx, mesa_shader_stage sha
        }
  #endif
     } else {
@@ -65,7 +65,7 @@ index 889699d80f2c4..5c478a2e4400c 100644
        ctx->di.t.ubos[shader][slot].range = VK_WHOLE_SIZE;
     }
     return res;
-@@ -747,13 +753,16 @@ update_descriptor_state_ssbo_db(struct zink_context *ctx, mesa_shader_stage shad
+@@ -749,13 +755,16 @@ update_descriptor_state_ssbo_db(struct zink_context *ctx, mesa_shader_stage shad
  ALWAYS_INLINE static struct zink_resource *
  update_descriptor_state_ssbo_lazy(struct zink_context *ctx, mesa_shader_stage shader, unsigned slot, struct zink_resource *res)
  {
@@ -83,7 +83,7 @@ index 889699d80f2c4..5c478a2e4400c 100644
        ctx->di.t.ssbos[shader][slot].range = VK_WHOLE_SIZE;
     }
     return res;
-@@ -770,6 +779,7 @@ ALWAYS_INLINE static struct zink_resource *
+@@ -772,6 +781,7 @@ ALWAYS_INLINE static struct zink_resource *
  update_descriptor_state_sampler(struct zink_context *ctx, mesa_shader_stage shader, unsigned slot, struct zink_resource *res)
  {
     struct zink_screen *screen = zink_screen(ctx->base.screen);
@@ -91,7 +91,7 @@ index 889699d80f2c4..5c478a2e4400c 100644
     const enum zink_descriptor_type type = ZINK_DESCRIPTOR_TYPE_SAMPLER_VIEW;
     ctx->di.descriptor_res[type][shader][slot] = res;
     if (res) {
-@@ -800,13 +810,22 @@ update_descriptor_state_sampler(struct zink_context *ctx, mesa_shader_stage shad
+@@ -802,13 +812,22 @@ update_descriptor_state_sampler(struct zink_context *ctx, mesa_shader_stage shad
           }
        }
     } else {
@@ -120,7 +120,7 @@ index 889699d80f2c4..5c478a2e4400c 100644
        }
     }
     return res;
-@@ -823,6 +842,7 @@ ALWAYS_INLINE static struct zink_resource *
+@@ -825,6 +844,7 @@ ALWAYS_INLINE static struct zink_resource *
  update_descriptor_state_image(struct zink_context *ctx, mesa_shader_stage shader, unsigned slot, struct zink_resource *res)
  {
     struct zink_screen *screen = zink_screen(ctx->base.screen);
@@ -128,7 +128,7 @@ index 889699d80f2c4..5c478a2e4400c 100644
     const enum zink_descriptor_type type = ZINK_DESCRIPTOR_TYPE_IMAGE;
     ctx->di.descriptor_res[type][shader][slot] = res;
     if (res) {
-@@ -842,12 +862,21 @@ update_descriptor_state_image(struct zink_context *ctx, mesa_shader_stage shader
+@@ -844,12 +864,21 @@ update_descriptor_state_image(struct zink_context *ctx, mesa_shader_stage shader
           ctx->di.images[shader][slot].imageView = surface->image_view;
        }
     } else {
@@ -155,7 +155,7 @@ index 889699d80f2c4..5c478a2e4400c 100644
        }
     }
     return res;
-@@ -2519,17 +2548,36 @@ zink_delete_texture_handle(struct pipe_context *pctx, uint64_t handle)
+@@ -2524,17 +2553,36 @@ zink_delete_texture_handle(struct pipe_context *pctx, uint64_t handle)
  static void
  zero_bindless_descriptor(struct zink_context *ctx, uint32_t handle, bool is_buffer, bool is_image)
  {
@@ -200,7 +200,7 @@ index 889699d80f2c4..5c478a2e4400c 100644
     }
  }
  
-@@ -2849,13 +2897,15 @@ bool
+@@ -2854,13 +2902,15 @@ bool
  zink_update_fbfetch(struct zink_context *ctx)
  {
     const bool had_fbfetch = ctx->di.fbfetch.imageLayout == VK_IMAGE_LAYOUT_GENERAL;
@@ -215,19 +215,19 @@ index 889699d80f2c4..5c478a2e4400c 100644
 +      ctx->di.fbfetch.imageView = have_null_descriptors ? VK_NULL_HANDLE :
 +                                  zink_get_dummy_surface(ctx, 0)->image_view;
        ctx->invalidate_descriptor_state(ctx, MESA_SHADER_FRAGMENT, ZINK_DESCRIPTOR_TYPE_UBO, 0, 1);
+       ctx->dynamic_fb.flags[0].flags &= ~VK_RENDERING_ATTACHMENT_INPUT_ATTACHMENT_FEEDBACK_BIT_KHR;
        return true;
-    }
-@@ -2874,7 +2924,8 @@ zink_update_fbfetch(struct zink_context *ctx)
-       if (zink_get_fs_base_key(ctx)->fbfetch_ms != fbfetch_ms)
+@@ -2881,7 +2931,8 @@ zink_update_fbfetch(struct zink_context *ctx)
           zink_set_fs_base_key(ctx)->fbfetch_ms = fbfetch_ms;
+       ctx->dynamic_fb.flags[0].flags |= VK_RENDERING_ATTACHMENT_INPUT_ATTACHMENT_FEEDBACK_BIT_KHR;
     } else {
 -      ctx->di.fbfetch.imageView = VK_NULL_HANDLE;
 +      ctx->di.fbfetch.imageView = have_null_descriptors ? VK_NULL_HANDLE :
 +                                  zink_get_dummy_surface(ctx, 0)->image_view;
+       ctx->dynamic_fb.flags[0].flags &= ~VK_RENDERING_ATTACHMENT_INPUT_ATTACHMENT_FEEDBACK_BIT_KHR;
     }
     bool ret = false;
-    ctx->di.fbfetch.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-@@ -5493,6 +5544,70 @@ zink_emit_string_marker(struct pipe_context *pctx,
+@@ -5586,6 +5637,70 @@ zink_emit_string_marker(struct pipe_context *pctx,
     free(temp);
  }
  
@@ -298,7 +298,7 @@ index 889699d80f2c4..5c478a2e4400c 100644
  static void
  zink_tc_parse_dsa(void *state, struct tc_renderpass_info *info)
  {
-@@ -5717,12 +5832,20 @@ zink_context_create(struct pipe_screen *pscreen, void *priv, unsigned flags)
+@@ -5821,12 +5936,20 @@ zink_context_create(struct pipe_screen *pscreen, void *priv, unsigned flags)
  
     const uint32_t data[] = {0};
     if (!is_copy_only) {
@@ -319,7 +319,7 @@ index 889699d80f2c4..5c478a2e4400c 100644
        if (!zink_descriptors_init(ctx))
           goto fail;
     }
-@@ -5779,6 +5902,7 @@ zink_context_create(struct pipe_screen *pscreen, void *priv, unsigned flags)
+@@ -5883,6 +6006,7 @@ zink_context_create(struct pipe_screen *pscreen, void *priv, unsigned flags)
     else
        ctx->invalidate_descriptor_state = zink_context_invalidate_descriptor_state;
     if (!is_copy_only && !is_compute_only) {
@@ -328,7 +328,7 @@ index 889699d80f2c4..5c478a2e4400c 100644
        if (screen->info.have_EXT_color_write_enable)
           reapply_color_write(ctx);
 diff --git a/src/gallium/drivers/zink/zink_context.h b/src/gallium/drivers/zink/zink_context.h
-index 814077e6144c3..97bd90ae9649a 100644
+index 814077e6144c..97bd90ae9649 100644
 --- a/src/gallium/drivers/zink/zink_context.h
 +++ b/src/gallium/drivers/zink/zink_context.h
 @@ -301,6 +301,9 @@ zink_clamp_void_swizzle(const struct util_format_description *desc, enum pipe_sw
@@ -342,10 +342,10 @@ index 814077e6144c3..97bd90ae9649a 100644
  zink_set_null_fs(struct zink_context *ctx);
  
 diff --git a/src/gallium/drivers/zink/zink_device_info.py b/src/gallium/drivers/zink/zink_device_info.py
-index cbd3fefb76412..06462868d5204 100644
+index 01446686fa62..3648137f50b9 100644
 --- a/src/gallium/drivers/zink/zink_device_info.py
 +++ b/src/gallium/drivers/zink/zink_device_info.py
-@@ -185,7 +185,7 @@ EXTENSIONS = [
+@@ -191,7 +191,7 @@ EXTENSIONS = [
                alias="rb2",
                properties=True,
                features=True,
@@ -355,7 +355,7 @@ index cbd3fefb76412..06462868d5204 100644
                alias="rb_image",
                features=True),
 diff --git a/src/gallium/drivers/zink/zink_draw.cpp b/src/gallium/drivers/zink/zink_draw.cpp
-index 090b48a823ac9..23686b4ce4a53 100644
+index 2bcbba8ce340..9d12d8403ffe 100644
 --- a/src/gallium/drivers/zink/zink_draw.cpp
 +++ b/src/gallium/drivers/zink/zink_draw.cpp
 @@ -130,7 +130,7 @@ zink_bind_vertex_buffers(struct zink_context *ctx)
@@ -368,18 +368,18 @@ index 090b48a823ac9..23686b4ce4a53 100644
        }
     }
 diff --git a/src/gallium/drivers/zink/zink_screen.c b/src/gallium/drivers/zink/zink_screen.c
-index 1dddcf9ee903c..4b98987d3451d 100644
+index bf00c87be323..b759a471e4c8 100644
 --- a/src/gallium/drivers/zink/zink_screen.c
 +++ b/src/gallium/drivers/zink/zink_screen.c
-@@ -119,6 +119,7 @@ zink_debug_options[] = {
-    { "msaaopt", ZINK_DEBUG_MSAAOPT, "Optimize out loads/stores of MSAA attachments" },
+@@ -120,6 +120,7 @@ zink_debug_options[] = {
     { "rploads", ZINK_DEBUG_RPLOADS, "Zap renderpass loads for DONT_CARE" },
     { "nogeneral", ZINK_DEBUG_NOGENERAL, "Disable GENERAL layout usage for supported hardware" },
+    { "rpstores", ZINK_DEBUG_RPSTORES, "Zap renderpass stores for DONT_CARE" },
 +   { "dummydes", ZINK_DEBUG_DUMMYDES, "Use dummy descriptors even if nullDescriptor is available" },
     DEBUG_NAMED_VALUE_END
  };
  
-@@ -3445,11 +3446,6 @@ zink_internal_create_screen(const struct pipe_screen_config *config, int64_t dev
+@@ -3470,11 +3471,6 @@ zink_internal_create_screen(const struct pipe_screen_config *config, int64_t dev
        goto fail;
     }
  
@@ -391,7 +391,7 @@ index 1dddcf9ee903c..4b98987d3451d 100644
     if (zink_set_driver_strings(screen)) {
        mesa_loge("ZINK: failed to set driver strings\n");
        goto fail;
-@@ -3688,6 +3684,14 @@ zink_internal_create_screen(const struct pipe_screen_config *config, int64_t dev
+@@ -3713,6 +3709,14 @@ zink_internal_create_screen(const struct pipe_screen_config *config, int64_t dev
           }
           can_db = false;
        }
@@ -407,18 +407,18 @@ index 1dddcf9ee903c..4b98987d3451d 100644
           if (zink_descriptor_mode == ZINK_DESCRIPTOR_MODE_DB) {
              if (!screen->driver_name_is_inferred)
 diff --git a/src/gallium/drivers/zink/zink_types.h b/src/gallium/drivers/zink/zink_types.h
-index c174930e83b63..5974af9ddbe7f 100644
+index 76857db2bbf5..3f871612a9fd 100644
 --- a/src/gallium/drivers/zink/zink_types.h
 +++ b/src/gallium/drivers/zink/zink_types.h
-@@ -253,6 +253,7 @@ enum zink_debug {
-    ZINK_DEBUG_MSAAOPT = (1<<20),
+@@ -258,6 +258,7 @@ enum zink_debug {
     ZINK_DEBUG_RPLOADS = (1<<21),
     ZINK_DEBUG_NOGENERAL = (1<<22),
-+   ZINK_DEBUG_DUMMYDES = (1<<23),
+    ZINK_DEBUG_RPSTORES = (1<<23),
++   ZINK_DEBUG_DUMMYDES = (1<<24),
  };
  
  enum zink_pv_emulation_primitive {
-@@ -1884,7 +1885,10 @@ struct zink_context {
+@@ -1883,7 +1884,10 @@ struct zink_context {
        uint64_t render_passes;
     } hud;
  
@@ -431,4 +431,3 @@ index c174930e83b63..5974af9ddbe7f 100644
     unsigned image_rebind_counter;
 -- 
 GitLab
-
