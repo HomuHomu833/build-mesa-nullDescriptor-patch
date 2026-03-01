@@ -86,7 +86,7 @@ Output files will be placed in `mesa-[name]-[arch]` folders.
 [zink]: https://docs.mesa3d.org/drivers/zink.html
 [collabora-d3d12]: https://www.collabora.com/news-and-blog/news-and-events/introducing-opencl-and-opengl-on-directx.html
 [collabora-zink]: https://www.collabora.com/news-and-blog/blog/2018/10/31/introducing-zink-opengl-implementation-vulkan/
-[latest release]: https://github.com/mmozeiko/build-mesa/releases/latest
+[latest release]: ./releases/latest
 [WGL]: https://learn.microsoft.com/en-us/windows/win32/opengl/wgl-functions
 [EGL]: https://www.khronos.org/egl
 [GL]: https://www.khronos.org/opengl/
