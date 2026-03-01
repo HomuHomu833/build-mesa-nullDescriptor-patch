@@ -1,12 +1,12 @@
 @echo off
 setlocal enabledelayedexpansion
 
-set MESA_VERSION=26.0.0
-set MESA_SHA256=2a44e98e64d5c36cec64633de2d0ec7eff64703ee25b35364ba8fcaa84f33f72
+set MESA_VERSION=26.0.1
+set MESA_SHA256=bb5104f9f9a46c9b5175c24e601e0ef1ab44ce2d0fdbe81548b59adc8b385dcc
 
-set LLVM_VERSION=22.1.0-rc3
-set LLVM_SHA256=cfccf081ae6ee6ae7367b1915acccb8935c030d74b33b6e833bf5e2f03d96a30
-set LLVM_RELEASE=https://discourse.llvm.org/t/llvm-22-1-0-rc3-released/89769
+set LLVM_VERSION=22.1.0
+set LLVM_SHA256=25d2e2adc4356d758405dd885fcfd6447bce82a90eb78b6b87ce0934bd077173
+set LLVM_RELEASE=https://discourse.llvm.org/t/llvm-22-1-0-released/89950
 
 >nul find "'%LLVM_VERSION%'" meson\meson.llvm.build || (
   echo llvm version in meson.llvm.build does not match expected %LLVM_VERSION% value^^!
