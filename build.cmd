@@ -1,12 +1,12 @@
 @echo off
 setlocal enabledelayedexpansion
 
-set MESA_VERSION=26.0.3
-set MESA_SHA256=ddb7443d328e89aa45b4b6b80f077bf937f099daeca8ba48cabe32aab769e134
+set MESA_VERSION=26.0.4
+set MESA_SHA256=6d91541e086f29bb003602d2c81070f2be4c0693a90b181ca91e46fa3953fe78
 
-set LLVM_VERSION=22.1.1
-set LLVM_SHA256=9c6f37f6f5f68d38f435d25f770fc48c62d92b2412205767a16dac2c942f0c95
-set LLVM_RELEASE=https://discourse.llvm.org/t/llvm-22-1-1-released/90150
+set LLVM_VERSION=22.1.2
+set LLVM_SHA256=62f2f13ff25b1bb28ea507888e858212d19aafb65e8e72b4a65ee0629ec4ae0c
+set LLVM_RELEASE=https://discourse.llvm.org/t/llvm-22-1-2-released/90308
 
 >nul find "'%LLVM_VERSION%'" meson\meson.llvm.build || (
   echo llvm version in meson.llvm.build does not match expected %LLVM_VERSION% value^^!
@@ -252,6 +252,7 @@ meson.exe setup ^
   -Dbuildtype=release ^
   -Db_ndebug=true ^
   -Db_vscrt=mt ^
+  -Dc_args="-wd4189 -wd4319" ^
   -Dllvm=enabled ^
   -Dplatforms=windows ^
   -Dvideo-codecs= ^
@@ -275,6 +276,7 @@ meson.exe setup ^
   -Dbuildtype=release ^
   -Db_ndebug=true ^
   -Db_vscrt=mt ^
+  -Dc_args="-wd4189 -wd4319" ^
   -Dllvm=disabled ^
   -Dplatforms=windows ^
   -Dvideo-codecs=all ^
@@ -303,6 +305,7 @@ meson.exe setup ^
   -Dbuildtype=release ^
   -Db_ndebug=true ^
   -Db_vscrt=mt ^
+  -Dc_args="-wd4189 -wd4319" ^
   -Dllvm=disabled ^
   -Dplatforms=windows ^
   -Dvideo-codecs= ^
